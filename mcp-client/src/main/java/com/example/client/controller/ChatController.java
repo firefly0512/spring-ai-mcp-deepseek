@@ -1,8 +1,6 @@
 package com.example.client.controller;
 
-import org.commonmark.node.Node;
-import org.commonmark.parser.Parser;
-import org.commonmark.renderer.html.HtmlRenderer;
+import com.example.client.util.MarkdownUtil;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.http.MediaType;
@@ -54,43 +52,9 @@ public class ChatController {
         System.out.println(">>> 问题: " + message);
         System.out.println(">>> 回答：" + content);
 
-        return toHtml(content);
+        return MarkdownUtil.toHtmlPage(content);
     }
 
-    private String toHtml(String result) {
-        return "<!DOCTYPE html>" +
-                "<html>" +
-                "<head>" +
-                "    <title>Markdown 展示回答结果</title>" +
-                "    <style>" +
-                "        .container {" +
-                "            display: flex;" +
-                "            justify-content: center;" +
-                "            padding: 20px;" +
-                "        }" +
-                "        .content {" +
-                "            max-width: 800px;" +
-                "            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;" +
-                "        }" +
-                "        pre { background: #f6f8fa; padding: 15px; border-radius: 6px }" +
-                "    </style>" +
-                "</head>" +
-                "<body>" +
-                "    <div class='container'>" +
-                "        <div class='content'>" + parseMarkdownToHtml(result) + "</div>" +
-                "    </div>" +
-                "</body>" +
-                "</html>";
-    }
 
-    // 转换Markdown为HTML
-    private String parseMarkdownToHtml(String markdownContent) {
-        Parser parser = Parser.builder().build();
-        Node document = parser.parse(markdownContent);
-        HtmlRenderer renderer = HtmlRenderer.builder().build();
-        String htmlContent = renderer.render(document);
-
-        return htmlContent;
-    }
 
 }
