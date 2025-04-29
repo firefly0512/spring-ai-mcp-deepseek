@@ -14,7 +14,7 @@
     <!-- 标题 -->
     <div class="text-center mb-8">
 <!--        <h1 class="text-3xl font-bold text-gray-800">AI 对话助手</h1>-->
-        <p class="text-gray-600 mt-2">基于 Spring AI 的流式对话系统</p>
+        <p class="text-gray-600 mt-2">基于 Spring AI 的流式对话</p>
     </div>
 
     <!-- 聊天容器 -->
@@ -49,6 +49,8 @@
     const sendButton = document.getElementById('send-button');
     const loadingSpinner = document.getElementById('loading-spinner');
 
+    const baseUrl = '[[${baseUrl}]]';
+
     // 发送消息处理
     function handleSend() {
         const message = messageInput.value.trim();
@@ -59,7 +61,7 @@
         messageInput.value = '';
 
         // 构建API URL
-        const apiUrl = new URL('http://localhost:8083/api/chat/generate_stream');
+        const apiUrl = new URL(baseUrl + '/api/chat/generate_stream');
         apiUrl.searchParams.append('id', '01');
         apiUrl.searchParams.append('prompt', message);
 
@@ -76,20 +78,54 @@
                 const data = JSON.parse(event.data);
                 console.log(data);
 
-                console.log(data.result?.output?.messageType +  ' ' + data.result?.output?.toolCalls);
+                const messageType = data.messageType || '';
+                const content = data.text || '';
+                const finishReason = data.metadata?.finishReason;
+                const toolCalls = data.responses;
+                const toolArguments = data.metadata?.toolArguments;
 
-                const content = data.result?.output?.text || '';
-                const finishReason = data.result?.metadata?.finishReason;
 
-                // 创建消息容器（如果不存在）
-                if (!aiMessageElement) {
-                    aiMessageElement = addMessage('', 'ai');
+                // 如果有工具调用
+                if (messageType && messageType === 'TOOL') {
+
+                    console.log('创建消息容器 tool');
+
+                    // 显示每个工具调用
+                    if (toolCalls && toolArguments && toolCalls.length === toolArguments.length) {
+                        for (let i = 0; i < toolCalls.length; i++) {
+                            const currentToolCall = toolCalls[i];
+                            const itemToolArgument = JSON.parse(toolArguments[i].arguments);
+                            const itemToolResult = JSON.parse(currentToolCall.responseData);
+
+                            let toolMessageElement = addMessage('', 'tool')
+                            toolMessageElement.querySelector('.message-content').innerHTML = `
+                                <div class="tool-call">
+                                    <p>工具名称: ${currentToolCall.name}</p>
+                                    <p>入参: ${itemToolArgument}</p>
+                                    <p>返回结果: ${itemToolResult}</p>
+                                </div>
+                            `;
+                            autoScroll();
+                        }
+                    } else {
+                        console.log('toolCalls 和 toolArguments 长度不一致或数据不存在');
+                    }
+                    // eventSource.close();
+                    // sendButton.disabled = false;
+                    // loadingSpinner.classList.add('hidden');
                 }
 
                 // 追加内容
-                if (content) {
-                    aiMessageElement.querySelector('.message-content').innerHTML += content;
-                    autoScroll();
+                if (content && content.length > 0) {
+                    // 创建消息容器（如果不存在）
+                    if (!aiMessageElement && content.replaceAll('\n', '').length > 0) {
+                        console.log('创建消息容器 ai');
+                        aiMessageElement = addMessage('', 'ai');
+                    }
+                    if(aiMessageElement) {
+                        aiMessageElement.querySelector('.message-content').innerHTML += content;
+                        autoScroll();
+                    }
                 }
 
                 // 处理结束
@@ -115,6 +151,56 @@
             loadingSpinner.classList.add('hidden');
             addMessage('对话连接异常，请重试', 'ai', true);
         };
+    }
+
+    // 执行工具
+    function executeTool(toolName, toolInput) {
+        const apiUrl = new URL(baseUrl + '/api/chat/execute_tool');
+        apiUrl.searchParams.append('id', '01');
+        apiUrl.searchParams.append('toolName', toolName);
+
+        // 显示加载状态
+        sendButton.disabled = true;
+        loadingSpinner.classList.remove('hidden');
+
+        fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: toolInput,
+        })
+        .then(response => response.json())
+        .then(data => {
+            // 处理工具执行结果
+            const content = data.result?.output?.text || '';
+            const finishReason = data.result?.metadata?.finishReason;
+
+            // 创建消息容器
+            const aiMessageElement = addMessage('', 'ai');
+
+            // 追加内容
+            if (content) {
+                aiMessageElement.querySelector('.message-content').innerHTML += content;
+                autoScroll();
+            }
+
+            // 处理结束
+            if (finishReason === 'STOP') {
+                // 重新读出内容，显示 markdown 格式
+                const allContent = DOMPurify.sanitize(marked.parse(aiMessageElement.querySelector('.message-content').innerHTML));
+                aiMessageElement.querySelector('.message-content').innerHTML = allContent;
+
+                sendButton.disabled = false;
+                loadingSpinner.classList.add('hidden');
+            }
+        })
+        .catch(error => {
+            console.error('工具执行错误:', error);
+            sendButton.disabled = false;
+            loadingSpinner.classList.add('hidden');
+            addMessage('工具执行异常，请重试', 'ai', true);
+        });
     }
 
     // 添加消息到容器
