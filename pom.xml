@@ -19,6 +19,7 @@
     <modules>
         <module>mcp-server</module>
         <module>mcp-client</module>
+        <module>call-mcp</module>
     </modules>
 
     <properties>

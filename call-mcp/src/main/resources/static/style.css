@@ -1,0 +1,393 @@
+/* 全局样式 */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f5f7fa;
+}
+
+header, footer {
+    background-color: #1e88e5;
+    color: white;
+    text-align: center;
+    padding: 1rem;
+}
+
+header h1 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+header p {
+    font-size: 1rem;
+    opacity: 0.9;
+}
+
+main {
+    max-width: 1200px;
+    margin: 1.5rem auto;
+    padding: 0 1rem;
+    display: grid;
+    grid-template-columns: 3fr 1fr;
+    gap: 1.5rem;
+}
+
+/* 聊天窗口样式 */
+.chat-container {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 80vh;
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+}
+
+.message {
+    margin-bottom: 1rem;
+    max-width: 80%;
+}
+
+.message.user {
+    margin-left: auto;
+}
+
+.message-content {
+    padding: 0.8rem 1rem;
+    border-radius: 1rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.message.user .message-content {
+    background-color: #1e88e5;
+    color: white;
+    border-top-right-radius: 0;
+}
+
+.message.bot .message-content {
+    background-color: #f1f1f1;
+    border-top-left-radius: 0;
+}
+
+.message.system {
+    max-width: 100%;
+    margin: 0.5rem 0;
+    text-align: center;
+    color: #666;
+    font-style: italic;
+    font-size: 0.9rem;
+}
+
+.message.tool-call {
+    max-width: 95%;
+    margin: 0.5rem auto;
+    background-color: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 0.8rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.tool-call-header {
+    font-weight: 500;
+    color: #1e88e5;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 0.5rem;
+}
+
+.tool-call-header.collapsible {
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 0;
+}
+
+.tool-call-header.collapsible:hover {
+    background-color: #f1f3f5;
+    border-radius: 4px;
+}
+
+.status-icon {
+    margin-left: 8px;
+    font-size: 0.9rem;
+}
+
+.collapse-icon {
+    margin-left: auto;
+    font-size: 0.8rem;
+    transition: transform 0.2s;
+}
+
+.tool-icon {
+    margin-right: 4px;
+}
+
+.tool-call-content {
+    padding-top: 0.5rem;
+}
+
+.tool-call-input, .tool-call-result {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.tool-call-input pre, .tool-call-result pre {
+    background-color: #f1f3f5;
+    padding: 0.5rem;
+    border-radius: 4px;
+    overflow-x: auto;
+    margin-top: 0.2rem;
+}
+
+.tool-call-result .error {
+    color: #e53935;
+}
+
+/* JSON 语法高亮 */
+.json-key {
+    color: #0d47a1;
+    font-weight: bold;
+}
+
+.json-string {
+    color: #2e7d32;
+}
+
+.json-number {
+    color: #b71c1c;
+}
+
+.json-boolean {
+    color: #6200ea;
+    font-weight: bold;
+}
+
+.json-null {
+    color: #b0bec5;
+    font-style: italic;
+}
+
+.formatted-result {
+    background-color: #f1f3f5;
+    padding: 0.5rem;
+    border-radius: 4px;
+    margin-top: 0.2rem;
+    font-family: monospace;
+}
+
+/* 结果格式化样式 */
+.result-array, .result-object {
+    padding: 0.2rem;
+}
+
+.result-item {
+    margin-bottom: 0.8rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.result-item:last-child {
+    margin-bottom: 0;
+}
+
+.result-item-header {
+    background-color: #e3f2fd;
+    padding: 0.3rem 0.6rem;
+    font-weight: bold;
+    color: #1565c0;
+    font-size: 0.8rem;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.result-item-content {
+    padding: 0.6rem;
+    background-color: white;
+}
+
+.result-property {
+    padding: 0.3rem 0;
+    border-bottom: 1px dashed #eeeeee;
+    display: flex;
+    align-items: flex-start;
+}
+
+.result-property:last-child {
+    border-bottom: none;
+}
+
+.result-property strong {
+    color: #1565c0;
+    margin-right: 0.5rem;
+    min-width: 80px;
+}
+
+.empty-result {
+    color: #9e9e9e;
+    font-style: italic;
+    text-align: center;
+    padding: 0.5rem;
+}
+
+/* 可展开的嵌套值 */
+.expandable-value {
+    cursor: pointer;
+    color: #1976d2;
+    padding: 0.1rem 0.3rem;
+    background-color: #e3f2fd;
+    border-radius: 3px;
+    font-size: 0.85rem;
+    user-select: none;
+}
+
+.expandable-value:hover {
+    background-color: #bbdefb;
+}
+
+.expandable-value .preview-content {
+    display: none;
+    padding: 0.5rem;
+    margin-top: 0.3rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    background-color: white;
+    white-space: pre-wrap;
+    font-family: monospace;
+    color: #333;
+}
+
+.expandable-value.expanded .preview-content {
+    display: block;
+}
+
+.chat-input {
+    display: flex;
+    padding: 1rem;
+    border-top: 1px solid #eee;
+    background-color: #fff;
+}
+
+.chat-input textarea {
+    flex: 1;
+    height: 50px;
+    padding: 0.8rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    resize: none;
+    font-family: inherit;
+    font-size: 1rem;
+}
+
+.chat-input button {
+    margin-left: 0.5rem;
+    padding: 0 1.5rem;
+    background-color: #1e88e5;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.chat-input button:hover {
+    background-color: #1976d2;
+}
+
+/* 工具面板样式 */
+.tools-panel {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 1rem;
+}
+
+.tools-panel h2 {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #eee;
+}
+
+.tools-list {
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.tool-item {
+    margin-bottom: 1rem;
+    padding: 0.8rem;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+    border-left: 3px solid #1e88e5;
+}
+
+.tool-name {
+    font-weight: bold;
+    color: #1e88e5;
+    margin-bottom: 0.3rem;
+}
+
+.tool-description {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.tool-params {
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    border: 1px dashed #1e88e554;
+    padding: 4px;
+}
+
+.param-name {
+    color: #1e88e5;
+    font-weight: bold;
+}
+
+/* 加载动画 */
+.loading {
+    text-align: center;
+    color: #888;
+    padding: 1rem 0;
+}
+
+.thinking {
+    display: flex;
+    padding: 1rem;
+    font-style: italic;
+    color: #666;
+}
+
+.thinking .dots {
+    margin-left: 0.5rem;
+}
+
+/* 响应式布局 */
+@media (max-width: 768px) {
+    main {
+        grid-template-columns: 1fr;
+    }
+
+    .tools-panel {
+        max-height: 300px;
+    }
+
+    .message {
+        max-width: 90%;
+    }
+}

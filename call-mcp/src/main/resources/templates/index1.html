@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCP 助手</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+<!--    <h1>MCP助手</h1>-->
+<!--    <p>使用 MCP 工具的 AI 助手</p>-->
+    <p>MCP 助手</p>
+</header>
+
+<main>
+    <div class="chat-container">
+        <div class="chat-messages" id="chat-messages">
+            <div class="message bot">
+                <div class="message-content">
+                    欢迎使用 AI 智能助手！您可以询问我关于XXXX的问题。
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-input">
+            <textarea id="user-input" placeholder="输入您的问题..."></textarea>
+            <button id="send-button">发送</button>
+        </div>
+    </div>
+
+    <div class="tools-panel">
+        <h2>可用工具</h2>
+        <div class="tools-list" id="tools-list">
+            <div class="loading">加载中...</div>
+        </div>
+    </div>
+</main>
+
+<footer>
+    <p>使用 MCP 协议 与 大语言模型 集成的智能助手演示</p>
+</footer>
+
+<script>
+    const baseUrl = '[[${baseUrl}]]';
+</script>
+<script src="script.js"></script>
+</body>
+</html>
