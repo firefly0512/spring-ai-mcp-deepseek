@@ -7,7 +7,7 @@
         "@amap/amap-maps-mcp-server"
       ],
       "env": {
-        "AMAP_MAPS_API_KEY": "e93115f0a567ea9d57e75a748db10cf5"
+        "AMAP_MAPS_API_KEY": "xxxxxxxxxxxxxx"
       }
     },
     "filesystem": {
@@ -15,8 +15,7 @@
       "args": [
         "-y",
         "@modelcontextprotocol/server-filesystem",
-        "/Users/firefly/test",
-        "/Users/firefly/Downloads"
+        "xxxxx完整的存储目录"
       ]
     },
     "db-mysql-npx": {
@@ -27,7 +26,7 @@
         "--transport",
         "stdio",
         "--dsn",
-        "mysql://root:yangying@localhost:3306/memo_cube"
+        "数据库链接，如 mysql://root:xxxxx@localhost:3306/db_name"
       ]
     }
   }

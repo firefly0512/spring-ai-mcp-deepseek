@@ -7,20 +7,27 @@
         "@amap/amap-maps-mcp-server"
       ],
       "env": {
-        "AMAP_MAPS_API_KEY": "e93115f0a567ea9d57e75a748db10cf5"
+        "AMAP_MAPS_API_KEY": "xxxxxxxxxxxxxx"
       }
     },
-    "mastergo-magic-mcp": {
+    "filesystem": {
       "command": "npx",
       "args": [
         "-y",
-        "@mastergo/magic-mcp",
-        "--token=mg_1ddb02aed1e8437fab5dba8b5328e861",
-        "--url=https://mastergo.com"
-      ],
-      "env": {
-        "NPM_CONFIG_REGISTRY": "https://registry.npmjs.org/"
-      }
+        "@modelcontextprotocol/server-filesystem",
+        "xxxxx完整的存储目录"
+      ]
+    },
+    "db-mysql-npx": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@bytebase/dbhub",
+        "--transport",
+        "stdio",
+        "--dsn",
+        "数据库链接，如 mysql://root:xxxxx@localhost:3306/db_name"
+      ]
     }
   }
 }
