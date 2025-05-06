@@ -7,7 +7,7 @@
         "@amap/amap-maps-mcp-server"
       ],
       "env": {
-        "AMAP_MAPS_API_KEY": "e93115f0a567ea9d57e75a748db10cf5"
+        "AMAP_MAPS_API_KEY": "xxxxxxxxxxxxxx"
       }
     },
     "filesystem": {
@@ -15,7 +15,7 @@
       "args": [
         "-y",
         "@modelcontextprotocol/server-filesystem",
-        "/home/ubuntu/mcp-call/html"
+        "xxxxx完整的存储目录"
       ]
     }
   }
