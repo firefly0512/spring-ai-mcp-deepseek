@@ -16,8 +16,7 @@
         "-y",
         "@modelcontextprotocol/server-filesystem",
         "/Users/firefly/test",
-        "/Users/firefly/Downloads",
-        "/Users/program/myWorkspace/spring-ai-mcp-deepseek"
+        "/Users/firefly/Downloads"
       ]
     },
     "db-mysql-npx": {
