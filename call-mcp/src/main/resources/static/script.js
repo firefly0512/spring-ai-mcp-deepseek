@@ -94,7 +94,7 @@ function addToolCallMessage(toolCall, toolArgument) {
 
                 if(!textItems || textItems.length === 0) {
                     console.log('新版本，没有type');
-                    textItems = result;
+                    textItems = result.map(item => item.text);
                 }
 
                 if (textItems.length > 0) {
@@ -103,6 +103,8 @@ function addToolCallMessage(toolCall, toolArgument) {
                         const parsedData = JSON.parse(textItems[0]);
                         formattedResult = formatParsedResult(parsedData);
                     } catch (e) {
+                        console.error('不是json直接显示:', e);
+                        console.log('textItems-0:', textItems[0]);
                         // 如果不是有效的JSON，直接显示文本
                         formattedResult = textItems.join('<br>');
                     }
@@ -115,6 +117,7 @@ function addToolCallMessage(toolCall, toolArgument) {
 
             toolResult.innerHTML = `<b>结果:</b> <div class="formatted-result">${formattedResult}</div>`;
         } catch (e) {
+            console.error('解析结果失败:', e);
             toolResult.innerHTML = `<b>结果:</b> <pre>${formatJSON(toolCall.responseData || {})}</pre>`;
         }
     }
@@ -210,6 +213,8 @@ function formatParsedResult(data) {
     }
     // 处理原始值
     else {
+        console.log('typeof data:', typeof data);
+        console.log('原始值:', data);
         return String(data);
     }
 }
@@ -363,7 +368,7 @@ async function sendMessage(message) {
         eventSource.onmessage = (event) => {
             try {
                 const data = JSON.parse(event.data);
-                console.log(data);
+                // console.log(data);
 
                 const messageType = data.messageType || '';
                 const content = data.text || '';
@@ -373,7 +378,7 @@ async function sendMessage(message) {
 
                 // 如果有工具调用
                 if (messageType && messageType === 'TOOL') {
-
+                    console.log(data);
                     console.log('创建消息容器 tool');
 
                     // 添加工具调用提示
