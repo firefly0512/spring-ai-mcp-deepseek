@@ -1,6 +1,6 @@
 ## 说明
 
-mcp-client 模块中的 application.properties 配置文件:
+mcp-client 和 call-mcp 模块中的 application.properties 配置文件:
 
     spring.ai.openai.api-key=你的deepseek api key
 
@@ -15,7 +15,7 @@ http://localhost:8085/sse
 
 ## MCP 客户端
 
-### 文本客户端：
+### ★ 文本客户端：
 
 启动 mcp-client 模块，端口 8082
 
@@ -28,7 +28,7 @@ http://localhost:8085/sse
 ![img2.png](images/img2.png)
 
 
-### 流式客户端：
+### ★ 流式客户端：
 
 启动 call-mcp 模块，端口 8083
 
