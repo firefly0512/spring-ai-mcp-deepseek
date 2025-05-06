@@ -1,9 +1,10 @@
 ## 说明
 
-mcp-client 和 call-mcp 模块中的 application.properties 配置文件:
+1、mcp-client 和 call-mcp 模块中的 application.properties 配置文件:
 
     spring.ai.openai.api-key=你的deepseek api key
 
+2、mcp-servers-config.json 中的部分 key 信息补充完善
 
 
 ## MCP 服务端
