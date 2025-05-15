@@ -1,6 +1,5 @@
 package com.example.call.controller;
 
-import io.modelcontextprotocol.spec.McpSchema;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -18,7 +17,6 @@ import org.springframework.ai.tool.ToolCallback;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -41,6 +39,7 @@ public class ChatApiController {
 
         this.chatClient = chatClientBuilder
                 .defaultTools(toolProvider)
+                .defaultSystem("你是 MCP 工具小助手，能回答 XXX 问题")
                 .build();
 
         this.toolProvider = toolProvider;
@@ -55,7 +54,6 @@ public class ChatApiController {
 
     @GetMapping(value = "/tools")
     public ToolCallback[] getAllTools() {
-//        ToolCallback[] registeredTools = this.toolProvider.getToolCallbacks();
         return this.registeredTools;
     }
 
@@ -87,10 +85,6 @@ public class ChatApiController {
         // 初始化返回页面的内容
         Flux<Message> messageFlux = Flux.just();
 
-        if(!chatResponse.hasToolCalls()) {
-            messageFlux = chatResponseFlux.map(chat -> chat.getResult().getOutput());
-        }
-
         // 判断是否有工具调用，并循环调用工具
         while (chatResponse.hasToolCalls()) {
             AssistantMessage aiMessage = chatResponse.getResult().getOutput();
@@ -102,18 +96,11 @@ public class ChatApiController {
                 log.info(">>> 准备调用工具{}：{}，参数：({})", toolCall.type(), toolCall.name(), toolCall.arguments());
             });
 
-            aiMessage.getMedia().forEach(media -> {
-                log.info(">>> 媒体类型：" + media.getMimeType());
-            });
-
             ToolExecutionResult toolExecutionResult = toolCallingManager.executeToolCalls(chatPrompt, chatResponse);
 
             List<Message> toolResultMessages  = toolExecutionResult.conversationHistory();
 
             log.info(">>> 调用了工具，执行结果" + toolResultMessages);
-//            toolResultMessages.forEach(message -> {
-//                log.info(">>> 调用了工具，执行结果：" + message);
-//            });
 
             Message lastMessage = toolResultMessages.get(toolResultMessages.size() - 1);
             if (lastMessage.getMessageType() == MessageType.TOOL) {
@@ -122,6 +109,7 @@ public class ChatApiController {
                 // toolCalls 变成 map 格式
                 toolMessage.getMetadata().put("toolArguments", toolCalls);
 
+                // messageFlux 追加工具内容
                 messageFlux = Flux.concat(messageFlux, Flux.just(toolMessage));
 
                 for (ToolResponseMessage.ToolResponse resp :  toolMessage.getResponses()) {
@@ -133,18 +121,17 @@ public class ChatApiController {
 
             chatPrompt = new Prompt(toolResultMessages, chatOptions);
 
-            Flux<ChatResponse> newChatResponseFlux = this.chatClient
+            chatResponseFlux = this.chatClient
                     .prompt(chatPrompt)
                     .stream()
                     .chatResponse();
 
-            chatResponse = newChatResponseFlux.blockLast();
+            chatResponse = chatResponseFlux.blockLast();
 
-            if (!chatResponse.hasToolCalls()) {
-                // messageFlux 追加新的内容
-                messageFlux = Flux.concat(messageFlux, newChatResponseFlux.map(chat -> chat.getResult().getOutput()));
-            }
         }
+
+        // messageFlux 追加回答内容
+        messageFlux = Flux.concat(messageFlux, chatResponseFlux.map(chat -> (Message) chat.getResult().getOutput()));
 
         return messageFlux;
     }
@@ -160,18 +147,6 @@ public class ChatApiController {
 //                .tools(toolName, toolInput)
 //                .stream()
 //                .chatResponse();
-//    }
-//
-//    @GetMapping("/advisor/{id}/{prompt}")
-//    public Flux<String> advisorChat(HttpServletResponse response,
-//                                    @PathVariable String id,
-//                                    @PathVariable String prompt) {
-//
-//        response.setCharacterEncoding("UTF-8");
-//        return this.chatClient.prompt(prompt)
-//                .advisors(messageChatMemoryAdvisor)
-//                .stream()
-//                .content();
 //    }
 
 }
