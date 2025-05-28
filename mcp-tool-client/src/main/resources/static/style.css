@@ -38,6 +38,23 @@ main {
     gap: 1.5rem;
 }
 
+img {
+    max-width: -webkit-fill-available;
+}
+
+table {
+    word-break: break-word;
+    border-collapse: collapse;
+    margin: 10px 0px;
+}
+td, th {
+    border: 1px solid #999;
+    padding: 4px;
+}
+th {
+    background-color: #72c2dd;
+}
+
 /* 聊天窗口样式 */
 .chat-container {
     background-color: white;

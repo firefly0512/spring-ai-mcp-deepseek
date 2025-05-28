@@ -1,6 +1,5 @@
 package com.example.server.mcp;
 
-
 import com.example.server.service.BookService;
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.tool.method.MethodToolCallbackProvider;

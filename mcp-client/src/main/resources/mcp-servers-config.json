@@ -7,7 +7,7 @@
         "@amap/amap-maps-mcp-server"
       ],
       "env": {
-        "AMAP_MAPS_API_KEY": "xxxxxxxxxxxxxx"
+        "AMAP_MAPS_API_KEY": "xxxxxxxxxxxxxxxxxxxxxx"
       }
     },
     "filesystem": {
@@ -15,18 +15,7 @@
       "args": [
         "-y",
         "@modelcontextprotocol/server-filesystem",
-        "xxxxx完整的存储目录"
-      ]
-    },
-    "db-mysql-npx": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@bytebase/dbhub",
-        "--transport",
-        "stdio",
-        "--dsn",
-        "数据库链接，如 mysql://root:xxxxx@localhost:3306/db_name"
+        "用户目录xxxxxx"
       ]
     }
   }

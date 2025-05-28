@@ -17,11 +17,9 @@ public class ChatController {
     public ChatController(ChatClient.Builder chatClientBuilder,
                           ToolCallbackProvider toolCallbackProvider) {
         this.chatClient = chatClientBuilder
-                .defaultSystem("你是一个图书管理助手，可以帮助用户查询图书信息。" +
-                        "你可以根据书名模糊查询、根据作者查询和根据分类查询图书。" +
-                        "回复时，请使用简洁友好的语言，并将图书信息整理为易读的格式。")
+                .defaultSystem("你是一个MCP小助手，可根据需求调用不同的MCP工具，优化回答效果")
                 // 注册工具方法
-                .defaultTools(toolCallbackProvider)
+                .defaultToolCallbacks(toolCallbackProvider)
                 .build();
     }
 
