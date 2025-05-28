@@ -1,5 +1,8 @@
 ## 说明
 
+使用 Spring AI 1.0.0 整合 MCP 服务，包括 MCP server 和 deepseek AI client
+
+
 1、mcp-client 和 call-mcp 模块中的 application.properties 配置文件:
 
     spring.ai.openai.api-key=你的deepseek api key
@@ -29,9 +32,9 @@ http://localhost:8085/sse
 ![img2.png](images/img2.png)
 
 
-### ★ 流式客户端：
+### ★ 页面客户端（call + stream）, MCP tool 主动控制调用
 
-启动 call-mcp 模块，端口 8083
+启动 mcp-tool-client 模块，端口 8083
 
 访问入口：http://localhost:8083/
 

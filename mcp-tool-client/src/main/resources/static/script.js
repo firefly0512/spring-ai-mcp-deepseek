@@ -56,7 +56,8 @@ function addToolCallMessage(toolCall, toolArgument) {
 
     // 根据工具调用结果添加成功/失败标识
     const statusIcon = toolCall.error ? '❌' : '✅';
-    toolHeader.innerHTML = `<span class="tool-icon">🔧</span> <b>工具调用:</b> ${toolCall.name} <span class="status-icon">${statusIcon}</span> <span class="collapse-icon">▶</span>`;
+    const toolCallName = toolCall.name.replace('spring_ai_mcp_client_', '');
+    toolHeader.innerHTML = `<span class="tool-icon">🔧</span> <b>工具调用:</b> ${toolCallName} <span class="status-icon">${statusIcon}</span> <span class="collapse-icon">▶</span>`;
 
     // 创建内容容器 (默认隐藏)
     const toolContent = document.createElement('div');
@@ -246,24 +247,28 @@ function formatPropertyValue(value) {
 
 // 格式化消息内容，支持基本Markdown
 function formatMessage(content) {
-    // 处理代码块
-    content = content.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+    // // 处理代码块
+    // content = content.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+    //
+    // // 处理行内代码
+    // content = content.replace(/`([^`]+)`/g, '<code>$1</code>');
+    //
+    // // 处理粗体
+    // content = content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    //
+    // // 处理斜体
+    // content = content.replace(/\*(.*?)\*/g, '<em>$1</em>');
+    //
+    // // 处理链接
+    // content = content.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank">$1</a>');
+    //
+    // // 处理换行
+    // content = content.replace(/\n/g, '<br>');
+    //
+    // return content;
 
-    // 处理行内代码
-    content = content.replace(/`([^`]+)`/g, '<code>$1</code>');
-
-    // 处理粗体
-    content = content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-
-    // 处理斜体
-    content = content.replace(/\*(.*?)\*/g, '<em>$1</em>');
-
-    // 处理链接
-    content = content.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank">$1</a>');
-
-    // 处理换行
-    content = content.replace(/\n/g, '<br>');
-
+    // 处理 markdown 格式
+    content = DOMPurify.sanitize(marked.parse(content));
     return content;
 }
 
@@ -280,13 +285,14 @@ async function loadTools() {
 
         // 显示工具列表
         if (data && data.length > 0) {
-            data.forEach(tool => {
+            data.forEach(toolItem => {
+                const tool = toolItem.toolDefinition;
                 const toolDiv = document.createElement('div');
                 toolDiv.className = 'tool-item';
 
                 const toolName = document.createElement('div');
                 toolName.className = 'tool-name';
-                toolName.textContent = tool.name;
+                toolName.textContent = tool.name.replace('spring_ai_mcp_client_', '');
 
                 const toolDescription = document.createElement('div');
                 toolDescription.className = 'tool-description';
@@ -296,7 +302,7 @@ async function loadTools() {
                 toolDiv.appendChild(toolDescription);
 
                 // 添加参数信息
-                const inputTypeSchema = JSON.parse(tool.inputTypeSchema);
+                const inputTypeSchema = JSON.parse(tool.inputSchema);
                 if (inputTypeSchema && inputTypeSchema.properties) {
                     const paramsDiv = document.createElement('div');
                     paramsDiv.className = 'tool-params';
@@ -340,25 +346,90 @@ async function loadTools() {
     }
 }
 
+function generateSessionId() {
+    return crypto.randomUUID(); // 或自定义生成逻辑
+}
+
 // 发送消息到服务器
 async function sendMessage(message) {
-    try {
-        // 显示用户消息
-        addMessage(message, true);
+    // 会话id
+    let sessionId = sessionStorage.getItem('client-session-id');
+    if (!sessionId) {
+        sessionId = generateSessionId();
+        sessionStorage.setItem('client-session-id', sessionId);
+    }
 
+    // 显示用户消息
+    addMessage(message, true);
+
+    // 获得 checkbox 的 message-stream 的值
+    const messageStream = document.getElementById('message-stream').checked;
+
+    if(messageStream) {
+        // 调用 generate_stream 流式输出结果
+        streamChatMessage(sessionId, message);
+    } else {
+        // 调用 call 输出结果
+        callChatMessage(sessionId, message);
+    }
+
+}
+
+let aiMessageElement = null;
+let accumulatedMarkdown = '';
+
+function callChatMessage(sessionId, message) {
+    // 显示思考中指示器
+    const thinkingIndicator = addThinkingIndicator();
+
+    const formData = new FormData();
+    formData.append('chatId', sessionId);
+    formData.append('message', message);
+
+    // post from 表单调用接口
+    fetch(baseUrl + '/api/chat/call', {
+        method: 'POST',
+        body: formData
+    })
+        .then(response => response.json())
+        .then(data => {
+            // 移除思考中指示器
+            thinkingIndicator.remove();
+
+            console.log(data);
+
+            aiMessageElement = null;
+            accumulatedMarkdown = '';
+
+            data.forEach(messageItem => {
+
+                try {
+                    processPageMessage(messageItem)
+                } catch (error) {
+                    console.error('解析错误:', error);
+                    // 移除思考中指示器(如果存在)
+                    document.querySelector('.thinking')?.remove();
+                    addMessage(`解析错误: ${error || '未知错误'}`);
+                }
+            });
+        })
+}
+
+function streamChatMessage(sessionId, message) {
+    try {
         // 显示思考中指示器
         const thinkingIndicator = addThinkingIndicator();
 
         // 构建API URL
         const apiUrl = new URL(baseUrl + '/api/chat/generate_stream');
-        apiUrl.searchParams.append('id', '01');
-        apiUrl.searchParams.append('prompt', message);
+        apiUrl.searchParams.append('chatId', sessionId);
+        apiUrl.searchParams.append('message', message);
         // history: messageHistory.slice(0, -1) // 不包括刚刚添加的用户消息
 
         // 创建EventSource连接
         const eventSource = new EventSource(apiUrl);
-        let aiMessageElement = null;
-        let accumulatedMarkdown = '';
+        aiMessageElement = null;
+        accumulatedMarkdown = '';
 
         eventSource.addEventListener('message', event => {
             // 移除思考中指示器
@@ -367,59 +438,12 @@ async function sendMessage(message) {
 
         eventSource.onmessage = (event) => {
             try {
+
                 const data = JSON.parse(event.data);
-                // console.log(data);
-
-                const messageType = data.messageType || '';
-                const content = data.text || '';
-                const finishReason = data.metadata?.finishReason;
-                const toolCalls = data.responses;
-                const toolArguments = data.metadata?.toolArguments;
-
-                // 如果有工具调用
-                if (messageType && messageType === 'TOOL') {
-                    console.log(data);
-                    console.log('创建消息容器 tool');
-
-                    // 添加工具调用提示
-                    const toolsUsedDiv = document.createElement('div');
-                    toolsUsedDiv.className = 'message system';
-                    toolsUsedDiv.textContent = `AI 正在使用 ${toolCalls.length} 个工具来回答您的问题...`;
-                    chatMessages.appendChild(toolsUsedDiv);
-
-                    // 显示每个工具调用
-                    if (toolCalls && toolArguments && toolCalls.length === toolArguments.length) {
-                        for (let i = 0; i < toolCalls.length; i++) {
-                            const currentToolCall = toolCalls[i];
-                            const currentToolArgument = toolArguments[i];
-                            addToolCallMessage(currentToolCall, currentToolArgument);
-                        }
-                    } else {
-                        console.log('toolCalls 和 toolArguments 长度不一致或数据不存在');
-                    }
-
-                    // 添加工具使用完成提示
-                    const toolsCompletedDiv = document.createElement('div');
-                    toolsCompletedDiv.className = 'message system';
-                    toolsCompletedDiv.textContent = `工具使用完成，AI 正在生成最终回复...`;
-                    chatMessages.appendChild(toolsCompletedDiv);
-                }
-
-                // 添加AI回复
-                if (content && content.length > 0) {
-                    // 创建消息容器（如果不存在）
-                    if (!aiMessageElement && content.replaceAll('\n', '').length > 0) {
-                        console.log('创建消息容器 ai');
-                        aiMessageElement = addMessage('');
-                    }
-                    if(aiMessageElement) {
-                        accumulatedMarkdown += content;
-                        aiMessageElement.querySelector('.message-content').innerHTML = formatMessage(accumulatedMarkdown);
-                        scrollToBottom();
-                    }
-                }
+                processPageMessage(data);
 
                 // 处理结束
+                const finishReason = data.metadata?.finishReason;
                 if (finishReason === 'STOP') {
                     eventSource.close();
                 }
@@ -448,6 +472,67 @@ async function sendMessage(message) {
 
         addMessage(`发送消息出错: ${error.message}`);
     }
+}
+
+
+function processPageMessage(data) {
+    // console.log(data);
+
+    const messageType = data.messageType || '';
+    let content = data.text || '';
+    const toolCalls = data.responses;
+    const toolArguments = data.metadata?.toolArguments;
+
+    // 如果有工具调用
+    if (messageType && messageType === 'TOOL') {
+        console.log(data);
+        console.log('创建消息容器 tool');
+
+        // 添加工具调用提示
+        const toolsUsedDiv = document.createElement('div');
+        toolsUsedDiv.className = 'message system';
+        toolsUsedDiv.textContent = `AI 正在使用 ${toolCalls.length} 个工具来回答您的问题...`;
+        chatMessages.appendChild(toolsUsedDiv);
+
+        // 显示每个工具调用
+        if (toolCalls && toolArguments && toolCalls.length === toolArguments.length) {
+            for (let i = 0; i < toolCalls.length; i++) {
+                const currentToolCall = toolCalls[i];
+                const currentToolArgument = toolArguments[i];
+                addToolCallMessage(currentToolCall, currentToolArgument);
+            }
+        } else {
+            console.log('toolCalls 和 toolArguments 长度不一致或数据不存在');
+        }
+
+        // 添加工具使用完成提示
+        const toolsCompletedDiv = document.createElement('div');
+        toolsCompletedDiv.className = 'message system';
+        toolsCompletedDiv.textContent = `工具使用完成，AI 正在生成最终回复...`;
+        chatMessages.appendChild(toolsCompletedDiv);
+    }
+
+    const finishReason = data.metadata?.finishReason;
+    if (finishReason === 'STOP') {
+        content += '<br/><br/><span style="color: #aaa">【内容由 AI 生成，请仔细甄别】</span>';
+    }
+
+    // 添加AI回复
+    if (content && content.length > 0) {
+        // 创建消息容器（如果不存在）
+        if (!aiMessageElement && content.replaceAll('\n', '').length > 0) {
+            console.log('创建消息容器 ai');
+            aiMessageElement = addMessage('');
+        }
+        if(aiMessageElement) {
+            accumulatedMarkdown += content;
+            aiMessageElement.querySelector('.message-content').innerHTML = formatMessage(accumulatedMarkdown);
+            scrollToBottom();
+        }
+    }
+
+
+
 }
 
 // 发送消息事件处理

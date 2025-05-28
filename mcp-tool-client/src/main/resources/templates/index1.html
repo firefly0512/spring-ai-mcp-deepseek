@@ -9,7 +9,6 @@
 <body>
 <header>
 <!--    <h1>MCP助手</h1>-->
-<!--    <p>使用 MCP 工具的 AI 助手</p>-->
     <p>MCP 助手</p>
 </header>
 
@@ -18,9 +17,16 @@
         <div class="chat-messages" id="chat-messages">
             <div class="message bot">
                 <div class="message-content">
-                    欢迎使用 AI 智能助手！您可以询问我关于XXXX的问题。
+                    欢迎使用 AI 智能助手！有什么可以帮您？
                 </div>
             </div>
+        </div>
+
+        <div class="chat-input" style="padding: 5px 1rem;color: #e85656;">
+            <label>
+                <input type="checkbox" id="message-stream">
+                流式输出（注：勾选后页面无法展示mcp工具的调用详情）
+            </label>
         </div>
 
         <div class="chat-input">
@@ -44,6 +50,9 @@
 <script>
     const baseUrl = '[[${baseUrl}]]';
 </script>
+<!-- 引入 marked 和 DOMPurify -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.4.7/purify.min.js"></script>
 <script src="script.js"></script>
 </body>
 </html>
